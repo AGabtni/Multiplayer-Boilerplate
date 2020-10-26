@@ -1,53 +1,55 @@
 ﻿using UnityEngine;
-
+using Mirror;
 public class PlayerController : MonoBehaviour
 {
 
+    [SerializeField] CameraController cameraPrefab;
     [SerializeField] Transform playerInputSpace = default;
-    [SerializeField, Range(0f, 100f)]
-    float maxSpeed = 10f;
+    [SerializeField, Range(0f, 100f)] float maxSpeed = 10f;
 
-    [SerializeField, Range(0f, 100f)]
-    float maxAcceleration = 10f, maxAirAcceleration = 1f;
+    [SerializeField, Range(0f, 100f)] float maxAcceleration = 10f, maxAirAcceleration = 1f;
 
-    [SerializeField, Range(0f, 10f)]
-    float jumpHeight = 2f;
+    [SerializeField, Range(0f, 10f)] float jumpHeight = 2f;
 
-    [SerializeField, Range(0, 5)]
-    int maxAirJumps = 0;
+    [SerializeField, Range(0, 5)] int maxAirJumps = 0;
 
-    [SerializeField, Range(0, 90)]
-    float maxGroundAngle = 25f;
-
-    Rigidbody body;
+    [SerializeField, Range(0, 90)] float maxGroundAngle = 25f;
 
     Vector3 velocity, desiredVelocity;
 
+    Rigidbody body;
     Vector3 contactNormal;
-
-    bool desiredJump;
-
+    public bool desiredJump = false;
     int groundContactCount;
-
     bool OnGround => groundContactCount > 0;
-
     int jumpPhase;
-
     float minGroundDotProduct;
 
-    void OnValidate()
-    {
-        minGroundDotProduct = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
-    }
 
-    void Awake()
+
+    void Start()
     {
+        //foreach(var cam in FindObjectsOfType<CameraController>())
+        //    cam.gameObject.SetActive(false);
+
+        CreateCamera();
         body = GetComponent<Rigidbody>();
         OnValidate();
     }
 
+    public void CreateCamera()
+    {
+
+        CameraController newCamera = Instantiate(cameraPrefab) as CameraController;
+        newCamera.focus = transform;
+        playerInputSpace = newCamera.transform;
+
+
+    }
+
     void Update()
     {
+
         Vector2 playerInput;
         playerInput.x = Input.GetAxis("Horizontal");
         playerInput.y = Input.GetAxis("Vertical");
@@ -64,7 +66,7 @@ public class PlayerController : MonoBehaviour
             right.y = 0f;
             right.Normalize();
             desiredVelocity = (forward * playerInput.y + right * playerInput.x) * maxSpeed;
-            
+
 
 
         }
@@ -77,24 +79,24 @@ public class PlayerController : MonoBehaviour
         //Quaternion direction = Quaternion.LookRotation(desiredVelocity);
         //transform.rotation = Quaternion.Lerp(transform.rotation, direction, 2f * Time.deltaTime);
 
-        desiredJump |= Input.GetButtonDown("Jump");
-    }
+    
+    }   
 
     void FixedUpdate()
     {
+
         UpdateState();
         AdjustVelocity();
+        desiredJump |= Input.GetButtonDown("Jump");
 
         if (desiredJump)
         {
             desiredJump = false;
             Jump();
         }
-
         body.velocity = velocity;
         ClearState();
     }
-
     void ClearState()
     {
         groundContactCount = 0;
@@ -103,6 +105,7 @@ public class PlayerController : MonoBehaviour
 
     void UpdateState()
     {
+
         velocity = body.velocity;
         if (OnGround)
         {
@@ -133,6 +136,10 @@ public class PlayerController : MonoBehaviour
         float newZ = Mathf.MoveTowards(currentZ, desiredVelocity.z, maxSpeedChange);
 
         velocity += xAxis * (newX - currentX) + zAxis * (newZ - currentZ);
+    }
+    void OnValidate()
+    {
+        minGroundDotProduct = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
     }
 
     void Jump()

@@ -1,11 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class CameraController : MonoBehaviour
 {
 
-    [SerializeField] Transform focus = default;
+    public Transform focus = default;
     [SerializeField, Range(1f, 20f)] float distance = 5f;
     [SerializeField, Range(1f, 360f)] float rotationSpeed = 90f;
     [SerializeField, Range(-89f, 89f)] float minVerticalAngle = -30f, maxVerticalAngle = 60f;
@@ -13,14 +12,16 @@ public class CameraController : MonoBehaviour
     [SerializeField, Range(0f, 90f)] float alignSmoothRange = 45f;
     [SerializeField, Min(0f)] float focusRadius = 1f;
     [SerializeField, Range(0f, 1f)] float focusCentering = 0.5f;
-
     [SerializeField] LayerMask obstructionMask = -1;
     Vector3 focusPoint, previousFocusPoint;
     Vector2 orbitAngles = new Vector2(45f, 0f);
     float lastManualRotationTime;
     Camera regularCamera;
+
     void Start()
     {
+        
+
         regularCamera = GetComponent<Camera>();
         Cursor.lockState = CursorLockMode.Locked;
         focusPoint = focus.position;
@@ -56,7 +57,7 @@ public class CameraController : MonoBehaviour
 
         if (Physics.BoxCast(
             castFrom, CameraHalfExtends, castDirection, out RaycastHit hit,
-			lookRotation, castDistance, obstructionMask))
+            lookRotation, castDistance, obstructionMask))
         {
             rectPosition = castFrom + castDirection * hit.distance;
             lookPosition = rectPosition - rectOffset;
